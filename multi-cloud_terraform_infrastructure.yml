@@ -1,0 +1,149 @@
+# Azure Provider Configuration
+provider "azurerm" {
+  features {}
+}
+
+# Azure Resources
+resource "azurerm_resource_group" "main" {
+  name     = "${var.project_name}-${var.environment}-rg"
+  location = "eastus"
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+resource "azurerm_virtual_network" "main" {
+  name                = "${var.project_name}-${var.environment}-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location           = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+# GCP Provider Configuration
+provider "google" {
+  project = var.gcp_project_id
+  region  = "us-central1"
+}
+
+# GCP Resources
+resource "google_compute_network" "main" {
+  name                    = "${var.project_name}-${var.environment}-vpc"
+  auto_create_subnetworks = false
+}
+
+resource "google_compute_subnetwork" "main" {
+  name          = "${var.project_name}-${var.environment}-subnet"
+  ip_cidr_range = "10.0.1.0/24"
+  region        = "us-central1"
+  network       = google_compute_network.main.id
+}
+
+# Variables for multi-cloud setup
+variable "gcp_project_id" {
+  description = "GCP Project ID"
+  type        = string
+}
+
+variable "cloud_provider" {
+  description = "Cloud provider to use (aws, azure, or gcp)"
+  type        = string
+  default     = "aws"
+
+  validation {
+    condition     = contains(["aws", "azure", "gcp"], var.cloud_provider)
+    error_message = "Cloud provider must be one of: aws, azure, or gcp."
+  }
+}
+
+# Locals for provider-specific configurations
+locals {
+  is_aws   = var.cloud_provider == "aws"
+  is_azure = var.cloud_provider == "azure"
+  is_gcp   = var.cloud_provider == "gcp"
+}
+
+# Example of cross-cloud networking module
+module "networking" {
+  source = "./modules/networking"
+
+  project_name    = var.project_name
+  environment     = var.environment
+  cloud_provider  = var.cloud_provider
+  
+  # Provider-specific variables
+  aws_region      = local.is_aws ? "us-west-2" : null
+  azure_location  = local.is_azure ? "eastus" : null
+  gcp_region      = local.is_gcp ? "us-central1" : null
+}
+
+# Example of cross-cloud compute module
+module "compute" {
+  source = "./modules/compute"
+
+  project_name    = var.project_name
+  environment     = var.environment
+  cloud_provider  = var.cloud_provider
+
+  # Provider-specific variables
+  instance_count  = 2
+  instance_type   = {
+    aws   = "t3.micro"
+    azure = "Standard_B1s"
+    gcp   = "e2-micro"
+  }[var.cloud_provider]
+}
+
+# Example of cross-cloud database module
+module "database" {
+  source = "./modules/database"
+
+  project_name    = var.project_name
+  environment     = var.environment
+  cloud_provider  = var.cloud_provider
+
+  # Provider-specific variables
+  db_version      = {
+    aws   = "8.0"
+    azure = "8.0"
+    gcp   = "MYSQL_8_0"
+  }[var.cloud_provider]
+}
+
+# Example module structure for networking
+# ./modules/networking/main.tf
+/*
+module "aws_networking" {
+  count  = var.cloud_provider == "aws" ? 1 : 0
+  source = "./aws"
+  # AWS-specific variables
+}
+
+module "azure_networking" {
+  count  = var.cloud_provider == "azure" ? 1 : 0
+  source = "./azure"
+  # Azure-specific variables
+}
+
+module "gcp_networking" {
+  count  = var.cloud_provider == "gcp" ? 1 : 0
+  source = "./gcp"
+  # GCP-specific variables
+}
+*/
+
+# Example of provider-specific outputs
+output "network_id" {
+  description = "ID of the created network"
+  value = {
+    aws   = local.is_aws ? aws_vpc.main[0].id : null
+    azure = local.is_azure ? azurerm_virtual_network.main[0].id : null
+    gcp   = local.is_gcp ? google_compute_network.main[0].id : null
+  }[var.cloud_provider]
+}
