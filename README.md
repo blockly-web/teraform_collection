@@ -1,12 +1,12 @@
-# Terraform Blockly Extension
+# Multi-Cloud Terraform Blockly Extension
 
-This repository contains Terraform infrastructure blocks for the [Blockly Web Experiment](https://github.com/blockly-web/blockly_experiment) project, providing visual programming capabilities for infrastructure as code.
+This repository contains multi-cloud Terraform infrastructure blocks for the [Blockly Web Experiment](https://github.com/blockly-web/blockly_experiment) project, providing visual programming capabilities for infrastructure as code across AWS, Azure, and Google Cloud Platform (GCP).
 
 Live Demo: [https://blockcode.web.app/#/](https://blockcode.web.app/#/)
 
 ## Overview
 
-This extension adds Terraform infrastructure blocks to the Blockly visual programming environment, allowing users to create AWS infrastructure using a drag-and-drop interface. The blocks are organized in three complexity levels:
+This extension adds Terraform infrastructure blocks to the Blockly visual programming environment, allowing users to create cloud infrastructure using a drag-and-drop interface across multiple cloud providers (AWS, Azure, and GCP). The blocks are organized in three complexity levels:
 
 1. **Basic Infrastructure**
    - VPC configuration
@@ -43,9 +43,28 @@ This extension adds Terraform infrastructure blocks to the Blockly visual progra
 
 3. Import the blocks into your Blockly workspace using the provided XML definitions.
 
+## Cloud Providers
+
+The blocks support three major cloud providers:
+
+1. **Amazon Web Services (AWS)**
+   - Region-based deployment
+   - AWS-specific services
+   - IAM integration
+
+2. **Microsoft Azure**
+   - Resource Group management
+   - Azure-specific services
+   - Role-based access control
+
+3. **Google Cloud Platform (GCP)**
+   - Project-based organization
+   - GCP-specific services
+   - Service account integration
+
 ## Block Categories
 
-### Network Blocks
+### Network Blocks (Provider-Specific)
 - VPC Creation
 - Subnet Management
 - Internet Gateway
@@ -111,3 +130,9 @@ For support, please:
 1. Check the [Issues](https://github.com/blockly-web/blockly_experiment/issues) section
 2. Visit the [live demo](https://blockcode.web.app/#/) for examples
 3. Refer to the [Terraform documentation](https://www.terraform.io/docs) for underlying concepts
+
+## Acknowledgments
+
+- Blockly Team for the visual programming framework
+- Terraform for infrastructure as code capabilities
+- AWS for cloud infrastructure services
